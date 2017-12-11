@@ -2,15 +2,25 @@ package main
 
 import (
 	"crypto/rand"
+	"flag"
 	"fmt"
 	"net/http"
 	"sync"
 )
 
-var urls = make(map[string]string)
-var m = sync.Mutex{}
+var domain string
+var port string
+var m sync.Mutex
+var urls map[string]string
+
+func init() {
+	flag.StringVar(&domain, "domain", "localhost", "")
+	flag.StringVar(&port, "port", "8080", "")
+	urls = make(map[string]string)
+}
 
 func main() {
+	flag.Parse()
 	http.HandleFunc("/", handler)
 	http.ListenAndServe(":8080", nil)
 }
@@ -19,13 +29,13 @@ func handler(resp http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "POST":
 		longURL := req.FormValue("url")
-		shortURL := "http://localhost:8080/" + hashID(8)
+		shortURL := "http://" + domain + ":" + port + "/" + hashID(8)
 		m.Lock()
 		urls[shortURL] = longURL
 		m.Unlock()
 		fmt.Fprintln(resp, shortURL)
 	case "GET":
-		shortURL := "http://localhost:8080" + req.URL.Path
+		shortURL := "http://" + domain + ":" + port + req.URL.Path
 		m.Lock()
 		longURL, ok := urls[shortURL]
 		m.Unlock()
