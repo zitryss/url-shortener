@@ -10,7 +10,7 @@ import (
 
 var domain string
 var port string
-var m sync.Mutex
+var m sync.RWMutex
 var urls map[string]string
 
 func init() {
@@ -36,9 +36,9 @@ func handler(resp http.ResponseWriter, req *http.Request) {
 		fmt.Fprintln(resp, shortURL)
 	case "GET":
 		shortURL := "http://" + domain + ":" + port + req.URL.Path
-		m.Lock()
+		m.RLock()
 		longURL, ok := urls[shortURL]
-		m.Unlock()
+		m.RUnlock()
 		if !ok {
 			http.Error(resp, "Page not found.", http.StatusNotFound)
 			return
