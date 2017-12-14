@@ -13,23 +13,24 @@ import (
 	"syscall"
 )
 
-var domain string
-var port string
-var m sync.RWMutex
-var urls map[string]string
-
-func init() {
-	flag.StringVar(&domain, "domain", "localhost", "")
-	flag.StringVar(&port, "port", "8080", "")
-	urls = make(map[string]string)
-}
+var (
+	domain string
+	port   string
+	m      sync.RWMutex
+	urls   = make(map[string]string)
+)
 
 func main() {
-	flag.Parse()
+	readArgs()
 	readURLs()
 	go writeURLs()
-	http.HandleFunc("/", handler)
-	http.ListenAndServe(":8080", nil)
+	startServer()
+}
+
+func readArgs() {
+	flag.StringVar(&domain, "domain", "localhost", "")
+	flag.StringVar(&port, "port", "8080", "")
+	flag.Parse()
 }
 
 func readURLs() {
@@ -60,28 +61,44 @@ func writeURLs() {
 	}
 }
 
+func startServer() {
+	http.HandleFunc("/", handler)
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
 func handler(resp http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "POST":
-		longURL := req.FormValue("url")
-		shortURL := "http://" + domain + ":" + port + "/" + hashID(8)
-		m.Lock()
-		urls[shortURL] = longURL
-		m.Unlock()
-		fmt.Fprintln(resp, shortURL)
+		postMethod(req, resp)
 	case "GET":
-		shortURL := "http://" + domain + ":" + port + req.URL.Path
-		m.RLock()
-		longURL, ok := urls[shortURL]
-		m.RUnlock()
-		if !ok {
-			http.Error(resp, "Page not found.", http.StatusNotFound)
-			return
-		}
-		http.Redirect(resp, req, longURL, http.StatusFound)
+		getMethod(req, resp)
 	default:
 		http.Error(resp, "Method is not supported.", http.StatusInternalServerError)
 	}
+}
+
+func postMethod(req *http.Request, resp http.ResponseWriter) {
+	longURL := req.FormValue("url")
+	shortURL := "http://" + domain + ":" + port + "/" + hashID(8)
+	m.Lock()
+	urls[shortURL] = longURL
+	m.Unlock()
+	fmt.Fprintln(resp, shortURL)
+}
+
+func getMethod(req *http.Request, resp http.ResponseWriter) {
+	shortURL := "http://" + domain + ":" + port + req.URL.Path
+	m.RLock()
+	longURL, ok := urls[shortURL]
+	m.RUnlock()
+	if !ok {
+		http.Error(resp, "Page not found.", http.StatusNotFound)
+		return
+	}
+	http.Redirect(resp, req, longURL, http.StatusFound)
 }
 
 func hashID(len int) string {
