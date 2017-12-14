@@ -2,10 +2,15 @@ package main
 
 import (
 	"crypto/rand"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 )
 
 var domain string
@@ -21,8 +26,38 @@ func init() {
 
 func main() {
 	flag.Parse()
+	readURLs()
+	go writeURLs()
 	http.HandleFunc("/", handler)
 	http.ListenAndServe(":8080", nil)
+}
+
+func readURLs() {
+	f, err := os.Open("./urls.json")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	err = json.NewDecoder(f).Decode(&urls)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func writeURLs() {
+	defer os.Exit(0)
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+	<-sig
+	f, err := os.Create("./urls.json")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	err = json.NewEncoder(f).Encode(&urls)
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func handler(resp http.ResponseWriter, req *http.Request) {
