@@ -72,15 +72,15 @@ func startServer() {
 func handler(resp http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "POST":
-		postMethod(req, resp)
+		postMethod(resp, req)
 	case "GET":
-		getMethod(req, resp)
+		getMethod(resp, req)
 	default:
 		http.Error(resp, "Method is not supported.", http.StatusInternalServerError)
 	}
 }
 
-func postMethod(req *http.Request, resp http.ResponseWriter) {
+func postMethod(resp http.ResponseWriter, req *http.Request) {
 	longURL := req.FormValue("url")
 	shortURL := "http://" + domain + ":" + port + "/" + hashID(8)
 	m.Lock()
@@ -89,7 +89,7 @@ func postMethod(req *http.Request, resp http.ResponseWriter) {
 	fmt.Fprintln(resp, shortURL)
 }
 
-func getMethod(req *http.Request, resp http.ResponseWriter) {
+func getMethod(resp http.ResponseWriter, req *http.Request) {
 	shortURL := "http://" + domain + ":" + port + req.URL.Path
 	m.RLock()
 	longURL, ok := urls[shortURL]
