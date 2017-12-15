@@ -65,7 +65,7 @@ func writeURLs() {
 
 func startServer() {
 	http.HandleFunc("/", handler)
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		log.Println(err)
 	}
