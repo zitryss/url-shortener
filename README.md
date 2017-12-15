@@ -17,6 +17,6 @@ $ url-shortener -domain example.com -port 8080
 
 On the client side:
 ```
-$ curl -X POST -d "url=https://wwww.website.com/extremely/long/url/" example.com:8080
+$ curl -X POST -F "url=https://wwww.website.com/extremely/long/url/" example.com:8080
 http://example.com:8080/aced25ea
 ```
