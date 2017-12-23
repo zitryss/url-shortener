@@ -13,6 +13,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"strings"
 )
 
 var (
@@ -83,12 +84,23 @@ func handler(resp http.ResponseWriter, req *http.Request) {
 }
 
 func postMethod(resp http.ResponseWriter, req *http.Request) {
-	longURL := req.FormValue("url")
+	typedURL := req.FormValue("url")
+	longURL := extendURL(typedURL)
 	shortURL := "http://" + domain + ":" + port + "/" + hashID(8)
 	m.Lock()
 	urls[shortURL] = longURL
 	m.Unlock()
 	fmt.Fprintln(resp, shortURL)
+}
+
+func extendURL(url string) string {
+	prefixes := []string{"http://", "https://", "ftp://"}
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(url, prefix) {
+			return url
+		}
+	}
+	return "http://" + url
 }
 
 func getMethod(resp http.ResponseWriter, req *http.Request) {
