@@ -94,9 +94,9 @@ func postMethod(resp http.ResponseWriter, req *http.Request) {
 }
 
 func extendURL(url string) string {
-	prefixes := []string{"http://", "https://", "ftp://"}
-	for _, prefix := range prefixes {
-		if strings.HasPrefix(url, prefix) {
+	protocols := [...]string{"http://", "https://", "ftp://"}
+	for _, protocol := range protocols {
+		if strings.HasPrefix(url, protocol) {
 			return url
 		}
 	}
