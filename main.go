@@ -38,7 +38,8 @@ func readArgs() {
 func readURLs() {
 	f, err := os.Open("./urls.json")
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return
 	}
 	err = json.NewDecoder(f).Decode(&urls)
 	if err != nil {
@@ -53,7 +54,8 @@ func writeURLs() {
 	<-sig
 	f, err := os.Create("./urls.json")
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return
 	}
 	err = json.NewEncoder(f).Encode(&urls)
 	if err != nil {
