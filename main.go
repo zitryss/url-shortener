@@ -1,5 +1,3 @@
-// +build linux darwin
-
 package main
 
 import (
@@ -12,7 +10,6 @@ import (
 	"os"
 	"os/signal"
 	"sync"
-	"syscall"
 	"strings"
 )
 
@@ -37,7 +34,7 @@ func readArgs() {
 }
 
 func readURLs() {
-	f, err := os.Open("./urls.json")
+	f, err := os.Open("urls.json")
 	if err != nil {
 		log.Println(err)
 		return
@@ -51,9 +48,9 @@ func readURLs() {
 func writeURLs() {
 	defer os.Exit(0)
 	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(sig, os.Interrupt)
 	<-sig
-	f, err := os.Create("./urls.json")
+	f, err := os.Create("urls.json")
 	if err != nil {
 		log.Println(err)
 		return
