@@ -1,16 +1,17 @@
 package main
 
 import (
-	"crypto/rand"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
-	"sync"
 	"strings"
+	"sync"
+	"time"
 )
 
 var (
@@ -19,6 +20,10 @@ var (
 	m      sync.RWMutex
 	urls   = make(map[string]string)
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 func main() {
 	readArgs()
@@ -112,8 +117,11 @@ func getMethod(resp http.ResponseWriter, req *http.Request) {
 	http.Redirect(resp, req, longURL, http.StatusFound)
 }
 
-func hashID(len int) string {
-	b := make([]byte, len/2)
-	rand.Read(b)
-	return fmt.Sprintf("%x", b)
+func hashID(length int) string {
+	emojis := ""
+	for i := 0; i < length; i++ {
+		n := rand.Intn(len(emojiCodes))
+		emojis += emojiCodes[n]
+	}
+	return fmt.Sprintf("%s", emojis)
 }
